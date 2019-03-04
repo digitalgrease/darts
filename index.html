@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.1/css/foundation.min.css"/>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/foundation-icons/3.0/foundation-icons.min.css"/>
+        
+        <!-- Let browser know website is optimized for mobile -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        
+        <title>Darts Scoreboard</title>
+    </head>
+    
+    <body>
+        <div id="app" class="row">
+            <br/>
+            <h1 class="text-center">Darts Scoreboard <span class="primary label">BETA</span></h1>
+            <br/>
+            
+            <div v-show="gameOver" class="text-center">
+                <h2>{{ players[winner].name }} wins!</h2>
+                <br/>
+                <a @click="reset" class="button">Restart</a> or press any key
+            </div>
+            
+            <div id="scoreboard" v-show="!gameOver">
+                <div class="row">
+                    <template v-for="(player, index) in players">
+                        <div class="column small-6">
+                            <h2 class="text-center"><i class="fi-arrow-right" v-show="currentPlayer === index"></i> {{ player.name }}</h2>
+                            <h3 class="text-center">{{ player.score }}</h3>
+                        </div>
+                    </template>
+                </div>
+                <br/>
+                <div class="row">
+                    <div class="column small-10 small-offset-1">
+                        <form @submit.prevent="deductScore">
+                            <label for="score">Enter {{ players[currentPlayer].name }}'s score: </label>
+                            <input type="number" id="score" v-model="score" class="text-center">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dev version of Vue with helpful console warnings -->
+        <!--<script src="vue.js"></script>-->
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        
+        <script>
+            let vm = new Vue({
+                el: '#app',
+                data: {
+                    initialScore: 501,
+                    numberOfPlayers: 2,
+                    score: '',
+                    currentPlayer: 0,
+                    players : [],
+                    gameOver: false,
+                    winner: 0
+                },
+                created: function() {
+                    for (let i = 0; i < this.numberOfPlayers; ++i) {
+                        this.players.push({
+                            name: 'Player ' + (i + 1),
+                            score: this.initialScore
+                        });
+                    }
+                    
+                    document.addEventListener('keydown', function(event) {
+                        switch (event.key) {
+                            case 'r':
+                            case 'R':
+                                vm.reset();
+                                break;
+                            default:
+                                if (vm.gameOver) {
+                                    vm.reset();
+                                }
+                        }
+                    });
+                },
+                methods: {
+                    deductScore: function() {
+                        let currentScore = this.players[this.currentPlayer].score;
+                        this.players[this.currentPlayer].score -= this.score;
+                        this.score = '';
+                        
+                        // If the player has won then reset the game.
+                        if (this.players[this.currentPlayer].score == 0) {
+                            
+                            // Display the winner message.
+                            this.gameOver = true;
+                            this.winner = this.currentPlayer;
+                            
+                        } else {
+
+                            // If the player has gone bust then reset their score.
+                            if (this.players[this.currentPlayer].score < 0) {
+                                this.players[this.currentPlayer].score = currentScore;
+                            }
+
+                            // Move to the next player's throw.
+                            ++this.currentPlayer;
+                            if (this.currentPlayer > this.players.length - 1) {
+                                this.currentPlayer = 0;
+                            }
+                        }
+                    },
+                    reset: function() {
+                        for (let i = 0; i < this.players.length; ++i) {
+                            this.players[i].score = this.initialScore;
+                            this.currentPlayer = 0;
+                        }
+                        vm.gameOver = false;
+                    }
+                }
+            });
+        </script>
+    </body>
+</html>
