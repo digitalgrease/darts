@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link rel="manifest" href="/manifest.webmanifest">
-        
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.1/css/foundation.min.css"/>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/foundation-icons/3.0/foundation-icons.min.css"/>
         
@@ -14,28 +12,24 @@
     
     <body>
         <div id="app" class="row">
-            <br/>
             <h1 class="text-center">Darts Scoreboard <span class="primary label">BETA</span></h1>
-            <br/>
             
-            <div v-show="gameOver" class="text-center">
-                <h2>{{ players[winner].name }} wins!</h2>
-                <br/>
-                <a @click="reset" class="button">Restart</a> or press any key
-            </div>
+            <h2 v-show="gameOver" class="text-center">{{ players[winner].name }} wins! (Press a key to continue...)</h2>
             
             <div id="scoreboard" v-show="!gameOver">
                 <div class="row">
                     <template v-for="(player, index) in players">
                         <div class="column small-6">
-                            <h2 class="text-center"><i class="fi-arrow-right" v-show="currentPlayer === index"></i> {{ player.name }}</h2>
+                            <div v-show="editNames"><i class="fi-arrow-right" v-show="currentPlayer === index"></i><input type="text" v-model="player.name"></div>
+                            <h2 v-show="!editNames" class="text-center"><i class="fi-arrow-right" v-show="currentPlayer === index"></i>{{ player.name }}</h2>
+                            
                             <h3 class="text-center">{{ player.score }}</h3>
                         </div>
                     </template>
                 </div>
-                <br/>
+                
                 <div class="row">
-                    <div class="column small-10 small-offset-1">
+                    <div class="column small-2">
                         <form @submit.prevent="deductScore">
                             <label for="score">Enter {{ players[currentPlayer].name }}'s score: </label>
                             <input type="number" id="score" v-model="score" class="text-center">
@@ -50,20 +44,18 @@
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
         
         <script>
-            // Register service worker if supported.
-            if ('serviceWorker' in navigator) {
-                console.log('Service workers are supported');
-                navigator.serviceWorker.register('/sw.js')
-                    .then(function (registration) {
-                        console.log('Service worker registered');
-                    }
-                ).catch(function (error) {
-                    console.log('Service worker registration failed: ', error);
-                });
-            } else {
-                console.log('Service workers are NOT supported');
-            }
-            
+            /*
+             * DO TG Move to Symfony framework.
+             * DO TG Switch between local dev and CDN production versions of the CSS, JS and Vue based on env.
+             * DO TG Style the app.
+             * DO TG Add auto-focus to the score input.
+             * DO TG Modify the initial starting score.
+             * DO TG Modify the number of players.
+             * DO TG Add the outs for the scores!
+             * DO TG Keep score history available.
+             * DO TG Display shortcut keys on screen.
+             * DO TG When editing names, auto-focus the first name field. When focus no longer on any name, switch off edit mode.
+             */
             let vm = new Vue({
                 el: '#app',
                 data: {
@@ -73,7 +65,8 @@
                     currentPlayer: 0,
                     players : [],
                     gameOver: false,
-                    winner: 0
+                    winner: 0,
+                    editNames: false
                 },
                 created: function() {
                     for (let i = 0; i < this.numberOfPlayers; ++i) {
@@ -84,15 +77,37 @@
                     }
                     
                     document.addEventListener('keydown', function(event) {
+                        
+                        console.log(event.key);
+                        
+                        vm.gameOver = false;
+                        
                         switch (event.key) {
-                            case 'r':
-                            case 'R':
-                                vm.reset();
+                            case 'Enter':
+                            case 'Escape':
+                                vm.editNames = false;
+                                vm.editNumberOfPlayers = false;
                                 break;
-                            default:
-                                if (vm.gameOver) {
+                        }
+                        
+                        if (!vm.editNames && !vm.editNumberOfPlayers) {
+                            switch (event.key) {
+                                case 'n':
+                                case 'N':
+                                    vm.editNames = true;
+                                    break;
+
+                                    // DO TG *
+    //                            case 'p':
+    //                            case 'P':
+    //                                vm.editNumberOfPlayers = true;
+    //                                break;
+
+                                case 'r':
+                                case 'R':
                                     vm.reset();
-                                }
+                                    break;
+                            }
                         }
                     });
                 },
@@ -108,6 +123,8 @@
                             // Display the winner message.
                             this.gameOver = true;
                             this.winner = this.currentPlayer;
+                            
+                            this.reset();
                             
                         } else {
 
@@ -128,7 +145,6 @@
                             this.players[i].score = this.initialScore;
                             this.currentPlayer = 0;
                         }
-                        vm.gameOver = false;
                     }
                 }
             });
