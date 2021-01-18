@@ -1,7 +1,9 @@
 {
     "name": "Darts Scoreboard",
     "short_name": "Darts Scoreboard",
-    "description": "A simple way to keep score of your game.",
+    "description": "A simple way to keep score of your game",
+    "start_url": "/",
+    "display": "standalone",
     "icons": [
         {
             "src": "/android-chrome-192x192.png",
@@ -16,6 +18,5 @@
     ],
     "theme_color": "#1de929",
     "background_color": "#1de929",
-    "display": "standalone",
     "orientation": "portrait"
 }
